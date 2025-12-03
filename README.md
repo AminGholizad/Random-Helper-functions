@@ -1,4 +1,4 @@
-# Random-Helper-functions-CPP17
+# Random-Helper-functions-CPP
 Simple functions to generate random numbers
 
 All functions are in the namespacce `rnd`
