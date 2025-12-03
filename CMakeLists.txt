@@ -1,58 +1,66 @@
 cmake_minimum_required(VERSION 3.10)
-project(RandomHelper CXX)
-set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+project(RandomHelper LANGUAGES CXX)
 
-# create an INTERFACE target for a header-only library
+# ============================
+# Header-only library
+# ============================
 add_library(RandomHelper INTERFACE)
 
 target_include_directories(RandomHelper INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-# set a public C++ standard requirement for consumers
+
+# Require C++23 for consumers
 target_compile_features(RandomHelper INTERFACE cxx_std_23)
 
-# add an alias so consumers can use "RandomHelper::RandomHelper"
+# Create namespace-style alias
 add_library(RandomHelper::RandomHelper ALIAS RandomHelper)
 
+# ============================
+# Optional tests / examples
+# ============================
+option(RH_BUILD_TESTS "Build tests for RandomHelper" OFF)
 
-if(false)
-    find_program(CLANG_TIDY_EXE clang-tidy)
-    if(CLANG_TIDY_EXE)
-        set(CMAKE_CXX_CLANG_TIDY
-    "${CLANG_TIDY_EXE}"
-    "--extra-arg=--driver-mode=g++"
-    "--extra-arg=-std=c++23"
-    "--header-filter=${CMAKE_SOURCE_DIR}/.*"
-  )
-    else()
-        message(WARNING "clang-tidy not found, CXX clang-tidy checks will not be run.")
+if(RH_BUILD_TESTS)
+    enable_testing()
+    set(CMAKE_CXX_COMPILER "g++")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    # Create test executable
+    add_executable(RandomHelperTests
+        tests/main.cpp
+        # add more test files here
+    )
+    if(false)
+        find_program(CLANG_TIDY_EXE clang-tidy)
+        if(CLANG_TIDY_EXE)
+            set(CMAKE_CXX_CLANG_TIDY
+        "${CLANG_TIDY_EXE}"
+        "--extra-arg=--driver-mode=g++"
+        "--extra-arg=-std=c++23"
+        "--header-filter=${CMAKE_SOURCE_DIR}/.*"
+    )
+        else()
+            message(WARNING "clang-tidy not found, CXX clang-tidy checks will not be run.")
+        endif()
     endif()
+
+    # Link test executable with your library
+    target_link_libraries(RandomHelperTests PRIVATE RandomHelper::RandomHelper)
+
+    # Apply strict compile flags ONLY to tests
+    target_compile_options(RandomHelperTests PRIVATE
+        -Wall -Wextra -Werror -Wshadow -Wnon-virtual-dtor -Wold-style-cast
+        -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion
+        -Wsign-conversion -Wnull-dereference -Wdouble-promotion
+        -Wformat=2 -Wimplicit-fallthrough
+    )
+    # Optimization flags based on build type
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(RandomHelperTests PRIVATE -g -O0)
+    elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+        target_compile_options(RandomHelperTests PRIVATE -O3 -DNDEBUG)
+    endif()
+    # Register with CTest
+    add_test(NAME RandomHelperTests COMMAND RandomHelperTests)
 endif()
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# Set default build type if not specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to 'Release' as default.")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
-    # Set the possible values of build type for cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
-
-# Add compiler flags based on build type
-add_compile_options(-Wall -Wextra -Werror -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 -Wimplicit-fallthrough)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g -O0)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(-O3 -DNDEBUG)
-endif()
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-add_executable(app src/main.cpp)
-
-target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

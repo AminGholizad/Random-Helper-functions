@@ -2,7 +2,10 @@ param (
     [string]$BuildType = "Debug"
 )
 
-.\build.ps1 -BuildType $BuildType
+.\build.ps1 -BuildType $BuildType -Tests
 if ($LASTEXITCODE -eq 0){
-.\build\bin\app.exe
+    Set-Location -Path "build"
+    ctest --output-on-failure
+    Set-Location -Path ".."
+#.\build\RandomHelperTests.exe
 }
