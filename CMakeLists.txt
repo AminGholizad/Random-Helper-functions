@@ -24,7 +24,6 @@ option(RH_BUILD_TESTS "Build tests for RandomHelper" OFF)
 
 if(RH_BUILD_TESTS)
     enable_testing()
-    set(CMAKE_CXX_COMPILER "g++")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     # Create test executable
     add_executable(RandomHelperTests
