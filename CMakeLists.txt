@@ -52,7 +52,7 @@ target_include_directories(Random-Helper INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 add_library(Random-Helper::Random-Helper ALIAS Random-Helper)
-option(Random-Helper_BUILD_TESTS "Build tests" ON)
+option(Random-Helper_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 if (Random-Helper_BUILD_TESTS)
     include(FetchContent)
 
