@@ -54,10 +54,19 @@ target_include_directories(Random-Helper INTERFACE
 add_library(Random-Helper::Random-Helper ALIAS Random-Helper)
 option(Random-Helper_BUILD_TESTS "Build tests" ON)
 if (Random-Helper_BUILD_TESTS)
+    include(FetchContent)
+
+    FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.11.0
+    )
+
+    FetchContent_MakeAvailable(Catch2)
     enable_testing()
     add_executable(Random-HelperTests tests/test_main.cpp)
     target_include_directories(Random-HelperTests PRIVATE ${PROJECT_SOURCE_DIR}/include)
-    target_link_libraries(Random-HelperTests PRIVATE Random-Helper)
+    target_link_libraries(Random-HelperTests PRIVATE Catch2::Catch2WithMain Random-Helper)
 
     # Apply the same strict warnings
     target_compile_options(Random-HelperTests PRIVATE
@@ -77,5 +86,6 @@ if (Random-Helper_BUILD_TESTS)
         \$<$<CONFIG:Debug>:-g>
         \$<$<CONFIG:RelWithDebInfo>:-g>
     )
-    add_test(NAME Random-HelperTests COMMAND Random-HelperTests)
+    include(Catch)
+    catch_discover_tests(Random-HelperTests)
 endif()
